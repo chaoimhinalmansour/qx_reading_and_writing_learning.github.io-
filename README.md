@@ -26,6 +26,10 @@
 
 直接打开 `index.html` 即可使用，不需要安装依赖。
 
+## GitHub Pages
+
+这是纯静态页面，推到 GitHub 后可以在仓库 Settings -> Pages 中选择 `main` 分支和根目录发布。
+
 ## 后续接入真实知识库
 
 当前知识库写在 `app.js` 的 `KNOWLEDGE_BASE` 和 `DAILY_CARDS` 中。接入真实数据时，保留这些字段即可：
