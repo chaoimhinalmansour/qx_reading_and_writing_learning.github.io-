@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IELTS Chunk Practice</title>
+    <link rel="stylesheet" href="styles.css?v=20260527-4" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="练习导航">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">CP</div>
+          <div>
+            <p class="eyebrow">IELTS Academic</p>
+            <h1>Chunk Practice</h1>
+          </div>
+        </div>
+
+        <section class="panel compact-panel" aria-labelledby="today-title">
+          <div class="section-heading">
+            <p class="eyebrow">Today</p>
+            <h2 id="today-title">阅读 / 写作</h2>
+          </div>
+          <div class="metric-row">
+            <span>当前板块</span>
+            <strong id="mode-label">阅读</strong>
+          </div>
+          <div class="metric-row">
+            <span>动作链</span>
+            <strong>4 步</strong>
+          </div>
+          <div class="metric-row">
+            <span>迁移状态</span>
+            <strong id="transfer-status">待完成</strong>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="chunk-title">
+          <div class="section-heading">
+            <p class="eyebrow">After Retrieval</p>
+            <h2 id="chunk-title">词块整理</h2>
+          </div>
+          <div id="chunk-list" class="chunk-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="progress-title">
+          <div class="section-heading">
+            <p class="eyebrow">Progress</p>
+            <h2 id="progress-title">完成度</h2>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <span id="progress-fill"></span>
+          </div>
+          <p id="progress-copy" class="muted">0/4 已检查</p>
+        </section>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Practice Board</p>
+            <h2 id="card-title">词块练习</h2>
+          </div>
+          <div class="topbar-actions">
+            <div class="mode-tabs" role="tablist" aria-label="选择练习板块">
+              <button class="tab-button is-active" data-mode="reading" type="button">阅读练习</button>
+              <button class="tab-button" data-mode="writing" type="button">写作练习</button>
+            </div>
+            <label class="dev-toggle" for="dev-mode-toggle">
+              <input id="dev-mode-toggle" type="checkbox" />
+              <span>开发者模式</span>
+            </label>
+            <button class="ghost-button" id="reset-card" type="button">重置作答</button>
+            <button class="primary-button" id="next-card" type="button">换一组词</button>
+          </div>
+        </header>
+
+        <section class="exercise-card" aria-labelledby="source-title">
+          <div class="section-heading">
+            <p class="eyebrow">Step 1</p>
+            <h2 id="source-title">认识单词</h2>
+          </div>
+          <p class="helper-copy">每次只看一个词。先读整句，也可以点按钮听音，再判断这个词在句中的中文含义。</p>
+          <div id="source-word-list" class="source-grid"></div>
+          <div class="action-row">
+            <button class="secondary-button" data-check="source" type="button">检查认词</button>
+            <p id="feedback-source" class="feedback" role="status"></p>
+          </div>
+        </section>
+
+        <section class="exercise-card" aria-labelledby="retrieval-title">
+          <div class="section-heading">
+            <p class="eyebrow">Step 2</p>
+            <h2 id="retrieval-title">检索词块</h2>
+          </div>
+          <p id="context-title" class="prompt-copy"></p>
+          <p id="context-text" class="reading-passage"></p>
+          <div id="retrieval-options" class="question-stack"></div>
+          <div class="action-row">
+            <button class="secondary-button" data-check="retrieval" type="button">检查理解与提取</button>
+            <p id="feedback-retrieval" class="feedback" role="status"></p>
+          </div>
+        </section>
+
+        <section class="exercise-card" aria-labelledby="judge-title">
+          <div class="section-heading">
+            <p class="eyebrow">Step 3</p>
+            <h2 id="judge-title">判断词块含义和作用</h2>
+          </div>
+          <div id="judge-questions" class="question-stack"></div>
+          <div class="action-row">
+            <button class="secondary-button" data-check="judge" type="button">检查判断</button>
+            <p id="feedback-judge" class="feedback" role="status"></p>
+          </div>
+        </section>
+
+        <section class="exercise-card" aria-labelledby="application-title">
+          <div class="section-heading">
+            <p class="eyebrow">Step 4</p>
+            <h2 id="application-title">应用练习</h2>
+          </div>
+          <div id="application-questions" class="question-stack"></div>
+          <div class="action-row">
+            <button class="secondary-button" data-check="application" type="button">检查应用</button>
+            <p id="feedback-application" class="feedback" role="status"></p>
+          </div>
+        </section>
+
+        <details class="answer-key">
+          <summary>教师答案与轻反馈要点</summary>
+          <div id="answer-key-content"></div>
+        </details>
+      </main>
+    </div>
+
+    <script src="app.js?v=20260527-4"></script>
+  </body>
+</html>
