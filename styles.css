@@ -801,6 +801,64 @@ h3 {
   font-weight: 740;
 }
 
+.application-block {
+  gap: 12px;
+}
+
+.application-context {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid oklch(84% 0.025 172);
+  border-radius: 8px;
+  background: oklch(96% 0.018 172);
+}
+
+.application-context span {
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.application-context p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.word-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chunk-chip {
+  display: grid;
+  gap: 2px;
+  min-height: 0;
+  padding: 8px 10px;
+  border: 1px solid oklch(82% 0.04 248);
+  background: oklch(97% 0.009 248);
+  color: var(--ink);
+  text-align: left;
+}
+
+.chunk-chip span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 780;
+  text-transform: uppercase;
+}
+
+.chunk-chip strong {
+  font-size: 0.9rem;
+}
+
+.chunk-chip em {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: normal;
+}
+
 .example-line {
   margin: 0;
   color: var(--muted);

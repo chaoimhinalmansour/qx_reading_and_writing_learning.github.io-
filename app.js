@@ -33,7 +33,7 @@ const MODULES = [
     id: "application",
     label: "应用练习",
     shortLabel: "应用",
-    hint: "用指定词块改错、改写或微型概括。"
+    hint: "在简单语境里自由调用今日词和词块。"
   }
 ];
 
@@ -205,9 +205,10 @@ const PRACTICE_SETS = [
       ],
       application: [
         {
-          type: "paraphrase",
-          prompt: "用 18-25 词概括短文核心问题，必须使用 struggle to 或 accurately。",
-          required: ["struggle to", "accurately"],
+          type: "contextual-build",
+          context: "你要向同学解释：认识很多单词不等于写作能用得自然。",
+          prompt: "写 1-2 句英文，说明这个学习问题。自由选择今日词和词块，尽量让句子像 IELTS Task 2 的观点句。",
+          minChunks: 2,
           sample: "Many students know many words but struggle to use them accurately because they learn vocabulary as isolated items."
         }
       ]
@@ -286,15 +287,10 @@ const PRACTICE_SETS = [
       ],
       application: [
         {
-          type: "repair",
-          prompt: "改错：Many students struggle in use words accurate.",
-          required: ["struggle to", "accurately"],
-          sample: "Many students struggle to use words accurately."
-        },
-        {
-          type: "rewrite",
-          prompt: "改写：Students know many words, but they cannot use them well.",
-          required: ["a large number of", "struggle to", "accurately"],
+          type: "contextual-build",
+          context: "你正在给一位 B1-B2 学生写反馈：他背了很多词，但作文里用词不准确。",
+          prompt: "写 1-2 句英文反馈。可以自由组合下面的词和词块，不需要完全照参考答案。",
+          minChunks: 2,
           sample: "A large number of students know many words, but they struggle to use them accurately."
         }
       ]
@@ -384,9 +380,10 @@ const PRACTICE_SETS = [
       ],
       application: [
         {
-          type: "summary",
-          prompt: "用 18-25 词概括这段数据变化，必须使用 a sharp increase in 或 accounted for。",
-          required: ["increase", "account"],
+          type: "contextual-build",
+          context: "你要口头总结一段图表文字：2015 到 2025 年，线上课程使用量明显上升，并改变了成人学习方式。",
+          prompt: "写 1 句英文总结这个趋势。自由选择今日词和词块，优先表达趋势和占比。",
+          minChunks: 2,
           sample: "The passage shows a sharp increase in online courses, which accounted for a growing share of adult education."
         }
       ]
@@ -453,15 +450,10 @@ const PRACTICE_SETS = [
       ],
       application: [
         {
-          type: "repair",
-          prompt: "改错：The chart shows a sharp increase of online learning.",
-          required: ["a sharp increase in"],
-          sample: "The chart shows a sharp increase in online learning."
-        },
-        {
-          type: "rewrite",
-          prompt: "改写：Online learning rose quickly from 2015 to 2025.",
-          required: ["a sharp increase in"],
+          type: "contextual-build",
+          context: "IELTS Task 1：图表显示 2015-2025 年 online learning 快速增长，并影响 adult education。",
+          prompt: "写 1 句图表描述。自由使用下面的词和词块，句子要能直接放进小作文。",
+          minChunks: 2,
           sample: "There was a sharp increase in online learning from 2015 to 2025."
         }
       ]
@@ -545,6 +537,54 @@ function getContextSentences(board = getBoard()) {
 function getEntryByChunk(chunk) {
   const key = normalise(chunk);
   return KNOWLEDGE_BASE.find((entry) => normalise(entry.chunk) === key);
+}
+
+function getApplicationBank(board = getBoard()) {
+  const seen = new Set();
+  return board.retrieval
+    .map((item) => {
+      const entry = getEntryByChunk(item.targetChunk) || {};
+      const key = normalise(item.targetChunk);
+      if (seen.has(key)) return null;
+      seen.add(key);
+      return {
+        word: item.sourceWord,
+        chunk: item.targetChunk,
+        example: item.expected,
+        zh: entry.zh || "",
+        tip: entry.writingTip || "根据语境替换词块里的宾语或动作。"
+      };
+    })
+    .filter(Boolean);
+}
+
+function usesChunk(answer, bankItem) {
+  const clean = normalise(answer);
+  const chunk = normalise(bankItem.chunk);
+  const example = normalise(bankItem.example);
+
+  if (!clean) return false;
+  if (example && clean.includes(example)) return true;
+  if (chunk && clean.includes(chunk)) return true;
+
+  if (chunk.includes(" do")) {
+    return clean.includes(chunk.replace(" do", ""));
+  }
+
+  if (chunk.includes("sth")) {
+    const parts = chunk.split("sth").map((part) => part.trim()).filter(Boolean);
+    return parts.every((part) => clean.includes(part));
+  }
+
+  if (chunk === "account for") {
+    return clean.includes("account for") || clean.includes("accounted for");
+  }
+
+  return false;
+}
+
+function getUsedChunks(answer, board = getBoard()) {
+  return getApplicationBank(board).filter((item) => usesChunk(answer, item));
 }
 
 function ensureSourceState(set = getSet()) {
@@ -836,15 +876,33 @@ function renderJudge(board = getBoard()) {
 }
 
 function renderApplication(board = getBoard()) {
+  const bank = getApplicationBank(board);
   $("#application-questions").innerHTML = board.application
-    .map((item, index) => `
-      <div class="question-block">
-        <p class="question-title">${item.type === "repair" ? "改错" : item.type === "rewrite" ? "改写" : "应用"}</p>
-        <p class="example-line">${item.prompt}</p>
-        <p class="example-line">必须使用：${item.required.join(" / ")}</p>
-        <textarea rows="3" data-application-index="${index}" placeholder="Write your answer..."></textarea>
-      </div>
-    `)
+    .map((item, index) => {
+      const minChunks = item.minChunks || Math.min(2, bank.length);
+      return `
+        <div class="question-block application-block">
+          <p class="question-title">语境造句</p>
+          <div class="application-context">
+            <span>语境</span>
+            <p>${item.context || item.prompt}</p>
+          </div>
+          <p class="example-line">${item.prompt}</p>
+          <p class="example-line">建议至少调用 ${minChunks} 个今日词块。点击词块可以放入作答框，再按语境补全句子。</p>
+          <div class="word-bank" aria-label="可用词和词块">
+            ${bank.map((bankItem) => `
+              <button class="chunk-chip" type="button" data-insert-chunk="${bankItem.example}" data-application-target="${index}">
+                <span>${bankItem.word}</span>
+                <strong>${bankItem.chunk}</strong>
+                <em>${bankItem.zh}</em>
+              </button>
+            `).join("")}
+          </div>
+          <textarea rows="4" data-application-index="${index}" placeholder="先点选可用词块，再根据语境写完整句子。"></textarea>
+          <p class="mini-feedback" data-application-feedback="${index}"></p>
+        </div>
+      `;
+    })
     .join("");
   $("[data-check='application']").disabled = false;
 }
@@ -855,7 +913,8 @@ function renderAnswerKey() {
   $("#answer-key-content").innerHTML = `
     <p><strong>板块：</strong>${state.mode === "reading" ? "阅读练习" : "写作练习"}</p>
     <p><strong>词块检索参考：</strong>${board.retrieval.map((item) => `${item.expected} -> ${item.targetChunk}`).join(" | ")}</p>
-    <p><strong>应用参考：</strong>${board.application.map((item) => item.sample).join(" | ")}</p>
+    <p><strong>应用方式：</strong>给语境和词块库，让学生自由造句；系统检查是否调用了足够数量的今日词块。</p>
+    <p><strong>参考表达：</strong>${board.application.map((item) => item.sample).join(" | ")}</p>
   `;
 }
 
@@ -946,6 +1005,16 @@ function setFeedback(id, type, text) {
   const node = $(id);
   node.textContent = text;
   node.className = `feedback ${type}`;
+}
+
+function insertChunkIntoApplication(index, chunk) {
+  const input = $(`[data-application-index='${index}']`);
+  if (!input) return;
+
+  const cleanChunk = chunk.trim();
+  const prefix = input.value.trim() ? " " : "";
+  input.value = `${input.value}${prefix}${cleanChunk}`;
+  input.focus();
 }
 
 function checkSource() {
@@ -1139,28 +1208,50 @@ function checkJudge() {
 
 function checkApplication() {
   const board = getBoard();
+  const bank = getApplicationBank(board);
   let correct = 0;
   let firstMiss = null;
 
   board.application.forEach((item, index) => {
     const answer = $(`[data-application-index='${index}']`).value;
-    const hasRequired = item.required.every((required) => includesLoose(answer, required));
-    const longEnough = normalise(answer).split(" ").filter(Boolean).length >= 6;
-    if (hasRequired && longEnough) {
+    const usedChunks = getUsedChunks(answer, board);
+    const minChunks = item.minChunks || Math.min(2, bank.length);
+    const longEnough = normalise(answer).split(" ").filter(Boolean).length >= 8;
+    const feedbackNode = $(`[data-application-feedback='${index}']`);
+
+    if (feedbackNode) feedbackNode.className = "mini-feedback";
+
+    if (usedChunks.length >= minChunks && longEnough) {
       correct += 1;
+      if (feedbackNode) {
+        feedbackNode.classList.add("good");
+        feedbackNode.textContent = `已调用 ${usedChunks.length} 个词块：${usedChunks.map((chunk) => chunk.chunk).join(" / ")}。`;
+      }
     } else if (!firstMiss) {
-      firstMiss = item;
+      firstMiss = { item, usedCount: usedChunks.length, minChunks, longEnough };
+      if (feedbackNode) {
+        feedbackNode.classList.add(usedChunks.length > 0 ? "warn" : "bad");
+        feedbackNode.textContent = usedChunks.length < minChunks
+          ? `再从词块库里调用至少 ${minChunks - usedChunks.length} 个表达。`
+          : "句子还太短，补出完整语境，不只是把词块排在一起。";
+      }
     }
   });
 
   state.applicationPassed = correct > 0;
   markChecked("application");
   if (correct === board.application.length) {
-    setFeedback("#feedback-application", "good", "应用完成：词块已经从识别进入输出。");
+    setFeedback("#feedback-application", "good", "应用完成：已经在语境里主动调用词块。");
   } else if (correct > 0) {
-    setFeedback("#feedback-application", "warn", "已有词块应用动作；继续检查另一题的指定词块是否完整。");
+    setFeedback("#feedback-application", "warn", "已有语境造句完成；继续补足另一题的词块调用。");
   } else {
-    setFeedback("#feedback-application", "bad", firstMiss ? `需要使用：${firstMiss.required.join(" / ")}` : "请使用指定词块完成应用。");
+    setFeedback(
+      "#feedback-application",
+      "bad",
+      firstMiss
+        ? `目前像是在堆词块。至少调用 ${firstMiss.minChunks} 个词块，并写成完整句子。`
+        : "先从词块库里选择表达，再写成完整句子。"
+    );
   }
   updateProgress();
 }
@@ -1176,6 +1267,11 @@ document.addEventListener("click", (event) => {
 
   if (button.dataset.speakSource) {
     speakSourceSentence(Number(button.dataset.speakSource));
+    return;
+  }
+
+  if (button.dataset.insertChunk) {
+    insertChunkIntoApplication(Number(button.dataset.applicationTarget), button.dataset.insertChunk);
     return;
   }
 
