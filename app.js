@@ -10,6 +10,33 @@ const ROLE_LABELS = {
   importance: "强调作用或重要性"
 };
 
+const MODULES = [
+  {
+    id: "source",
+    label: "认识单词",
+    shortLabel: "认词",
+    hint: "听整句，判断词在语境里的中文义。"
+  },
+  {
+    id: "retrieval",
+    label: "检索词块",
+    shortLabel: "检索",
+    hint: "读懂文本或写作语境，再把目标短语写一遍。"
+  },
+  {
+    id: "judge",
+    label: "判断含义和作用",
+    shortLabel: "判断",
+    hint: "判断词块在句中的意思和信息功能。"
+  },
+  {
+    id: "application",
+    label: "应用练习",
+    shortLabel: "应用",
+    hint: "用指定词块改错、改写或微型概括。"
+  }
+];
+
 const KNOWLEDGE_BASE = [
   {
     word: "struggle",
@@ -446,6 +473,7 @@ const state = {
   devMode: false,
   mode: "reading",
   setIndex: 0,
+  activeModule: "source",
   checked: {
     source: false,
     retrieval: false,
@@ -506,6 +534,10 @@ function getBoard() {
   return getSet()[state.mode];
 }
 
+function getActiveModule() {
+  return MODULES.find((module) => module.id === state.activeModule) || MODULES[0];
+}
+
 function getContextSentences(board = getBoard()) {
   return board.context.match(/[^.!?。！？]+[.!?。！？]/g) || [board.context];
 }
@@ -515,12 +547,23 @@ function getEntryByChunk(chunk) {
   return KNOWLEDGE_BASE.find((entry) => normalise(entry.chunk) === key);
 }
 
+function ensureSourceState(set = getSet()) {
+  const length = set.sourceCards.length;
+  if (state.sourceAttempts.length !== length) state.sourceAttempts = Array(length).fill(0);
+  if (state.sourceListened.length !== length) state.sourceListened = Array(length).fill(false);
+  if (state.sourceSolved.length !== length) state.sourceSolved = Array(length).fill(false);
+  state.sourceIndex = Math.min(state.sourceIndex, length - 1);
+}
+
 function render() {
   const set = getSet();
   const board = getBoard();
+  const activeModule = getActiveModule();
+  ensureSourceState(set);
   document.body.classList.toggle("dev-mode-on", state.devMode);
-  $("#card-title").textContent = `${set.title} · ${state.mode === "reading" ? "阅读练习" : "写作练习"}`;
+  $("#card-title").textContent = `${set.title} · ${state.mode === "reading" ? "阅读练习" : "写作练习"} · ${activeModule.shortLabel}`;
   $("#mode-label").textContent = state.mode === "reading" ? "阅读" : "写作";
+  $("#module-label").textContent = activeModule.label;
   $("#retrieval-title").textContent = state.mode === "reading" ? "读懂句子，提取表达" : "明确意图，调用词块";
   $("[data-check='retrieval']").textContent = state.mode === "reading" ? "检查理解与提取" : "检查词块调用";
   const devToggle = $("#dev-mode-toggle");
@@ -528,9 +571,28 @@ function render() {
   $$(".tab-button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.mode === state.mode);
   });
-  resetBoardState();
+  renderModuleSelector();
   renderSourceCards(set);
   renderBoard(board);
+  renderModuleVisibility();
+  updateProgress();
+}
+
+function renderModuleSelector() {
+  $("#module-list").innerHTML = MODULES.map((module, index) => `
+    <button class="module-button ${state.activeModule === module.id ? "is-active" : ""}" type="button" data-module-select="${module.id}">
+      <strong>${index + 1}. ${module.label}</strong>
+      <small>${module.hint}</small>
+    </button>
+  `).join("");
+}
+
+function renderModuleVisibility() {
+  $$(".exercise-card[data-module]").forEach((card) => {
+    const active = card.dataset.module === state.activeModule;
+    card.classList.toggle("is-hidden", !active);
+    card.setAttribute("aria-hidden", active ? "false" : "true");
+  });
 }
 
 function renderSourceCards(set = getSet()) {
@@ -572,25 +634,21 @@ function renderSourceCards(set = getSet()) {
   const sourceButton = $("[data-check='source']");
   if (sourceButton) {
     sourceButton.disabled = !state.devMode && allSolved && state.sourcePassed;
-    sourceButton.textContent = state.devMode ? "开发跳过认词" : solved && !allSolved ? "下一词" : allSolved ? "已解锁检索" : "检查认词";
+    sourceButton.textContent = state.devMode ? "开发跳过认词" : solved && !allSolved ? "下一词" : allSolved ? "认词已完成" : "检查认词";
   }
 }
 
 function renderBoard(board = getBoard()) {
   $("#context-title").textContent = board.contextTitle;
-  $("#context-text").textContent = "";
-  if (state.devMode) {
-    renderRetrieval(board);
-    renderChunkPanel(true, board);
-    renderJudge(board);
-    renderApplication(board);
-  } else {
-    $("#retrieval-options").innerHTML = lockedCopy("先完成认词", state.mode === "reading" ? "认词通过后，再读短文并提取表达。" : "认词通过后，再进入词块调用。");
-    $("#judge-questions").innerHTML = lockedCopy("先完成词块检索", "检索后再判断词块含义和作用。");
-    $("#application-questions").innerHTML = lockedCopy("先完成判断", "判断后再进入应用练习。");
-    renderChunkPanel(false);
-  }
+  renderRetrieval(board);
+  renderChunkPanel(shouldRevealChunkPanel(), board);
+  renderJudge(board);
+  renderApplication(board);
   renderAnswerKey();
+}
+
+function shouldRevealChunkPanel() {
+  return state.devMode || state.chunksRevealed || ["judge", "application"].includes(state.activeModule);
 }
 
 function lockedCopy(title, body) {
@@ -617,9 +675,6 @@ function resetBoardState() {
   $$(".feedback").forEach((node) => {
     node.textContent = "";
     node.className = "feedback";
-  });
-  $$("[data-check='retrieval'], [data-check='judge'], [data-check='application']").forEach((button) => {
-    button.disabled = !state.devMode;
   });
   const sourceButton = $("[data-check='source']");
   if (sourceButton) {
@@ -810,17 +865,22 @@ function markChecked(section) {
 }
 
 function updateProgress() {
+  const activeModule = getActiveModule();
   if (state.devMode) {
     $("#progress-fill").style.width = "100%";
-    $("#progress-copy").textContent = "开发者模式：全部步骤已解锁";
+    $("#progress-copy").textContent = "开发者模式：可直接进入任一模块";
     $("#transfer-status").textContent = "开发模式";
     return;
   }
   const total = Object.keys(state.checked).length;
   const completed = Object.values(state.checked).filter(Boolean).length;
   $("#progress-fill").style.width = `${(completed / total) * 100}%`;
-  $("#progress-copy").textContent = `${completed}/${total} 已检查`;
-  $("#transfer-status").textContent = state.applicationPassed ? "已应用" : state.chunksRevealed ? "待应用" : "待完成";
+  $("#progress-copy").textContent = `${completed}/${total} 个模块已检查`;
+  if (state.checked[state.activeModule]) {
+    $("#transfer-status").textContent = `${activeModule.shortLabel}已检查`;
+  } else {
+    $("#transfer-status").textContent = state.applicationPassed ? "已应用" : state.chunksRevealed ? "待应用" : "待完成";
+  }
 }
 
 function speakSourceSentence(index) {
@@ -903,12 +963,12 @@ function checkSource() {
     renderChunkPanel(true);
     renderJudge();
     renderApplication();
-    setFeedback("#feedback-source", "good", "开发者模式：已跳过认词门槛，后续步骤保持解锁。");
+    setFeedback("#feedback-source", "good", "开发者模式：已跳过认词门槛，可直接查看其他模块。");
     return;
   }
 
   if (state.sourcePassed) {
-    setFeedback("#feedback-source", "good", "认词已完成，继续做词块检索。");
+    setFeedback("#feedback-source", "good", "认词已完成，可以切换到词块检索模块。");
     return;
   }
 
@@ -924,7 +984,7 @@ function checkSource() {
     markChecked("source");
     renderSourceCards(set);
     renderRetrieval();
-    setFeedback("#feedback-source", "good", "认词完成，已解锁词块检索。");
+    setFeedback("#feedback-source", "good", "认词完成，可以切换到词块检索模块。");
     return;
   }
 
@@ -946,7 +1006,7 @@ function checkSource() {
       markChecked("source");
       renderSourceCards(set);
       renderRetrieval();
-      setFeedback("#feedback-source", "good", "正确。认词完成，已解锁词块检索。");
+      setFeedback("#feedback-source", "good", "正确。认词完成，可以切换到词块检索模块。");
     } else {
       renderSourceCards(set);
       setFeedback("#feedback-source", "good", "正确。点“下一词”继续。");
@@ -967,7 +1027,7 @@ function checkSource() {
     markChecked("source");
     renderSourceCards(set);
     renderRetrieval();
-    setFeedback("#feedback-source", "warn", `第二次仍不对，正确含义是“${item.answer}”。认词已完成，继续检索词块。`);
+    setFeedback("#feedback-source", "warn", `第二次仍不对，正确含义是“${item.answer}”。认词已完成，可以切换到词块检索模块。`);
   } else {
     renderSourceCards(set);
     setFeedback("#feedback-source", "warn", `第二次仍不对，正确含义是“${item.answer}”。点“下一词”继续。`);
@@ -1039,7 +1099,7 @@ function checkRetrieval() {
   if (completeCount === board.retrieval.length) {
     setFeedback("#feedback-retrieval", "good", `完成：${completeCount}/${board.retrieval.length} 个短语都写了一遍。`);
   } else if (state.devMode && activeCount === 0) {
-    setFeedback("#feedback-retrieval", "warn", "开发者模式：未填写检索也会保持后续步骤解锁。");
+    setFeedback("#feedback-retrieval", "warn", "开发者模式：未填写检索也可以查看其他模块。");
   } else if (activeCount > 0) {
     setFeedback("#feedback-retrieval", "warn", `已完成 ${activeCount}/${board.retrieval.length} 个短语抄写。`);
   } else {
@@ -1068,10 +1128,10 @@ function checkJudge() {
   markChecked("judge");
   if (correct === board.judge.length) {
     renderApplication();
-    setFeedback("#feedback-judge", "good", "含义和作用判断准确，已解锁应用练习。");
+    setFeedback("#feedback-judge", "good", "含义和作用判断准确，可以继续做应用模块。");
   } else if (correct > 0) {
     renderApplication();
-    setFeedback("#feedback-judge", "warn", `已有 ${correct} 题判断正确，先进入应用，再回看错题。`);
+    setFeedback("#feedback-judge", "warn", `已有 ${correct} 题判断正确，可以先做应用模块，再回看错题。`);
   } else {
     setFeedback("#feedback-judge", "bad", "先判断词块在句子里的中文义，再判断它承担的信息作用。");
   }
@@ -1106,10 +1166,7 @@ function checkApplication() {
 }
 
 function resetAnswers() {
-  $$("input[type='radio'], input[type='text'], textarea, select").forEach((node) => {
-    if (node.type === "radio") node.checked = false;
-    else node.value = "";
-  });
+  resetBoardState();
   render();
 }
 
@@ -1122,14 +1179,22 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  if (button.dataset.moduleSelect) {
+    state.activeModule = button.dataset.moduleSelect;
+    render();
+    return;
+  }
+
   if (button.dataset.mode) {
     state.mode = button.dataset.mode;
+    resetBoardState();
     render();
     return;
   }
 
   if (button.id === "next-card") {
     state.setIndex = (state.setIndex + 1) % PRACTICE_SETS.length;
+    resetBoardState();
     render();
     return;
   }
@@ -1153,7 +1218,7 @@ document.addEventListener("change", (event) => {
     setFeedback(
       "#feedback-source",
       state.devMode ? "warn" : "good",
-      state.devMode ? "开发者模式已开启：所有步骤已解锁。" : "已关闭开发者模式：恢复学生端流程。"
+      state.devMode ? "开发者模式已开启：可直接查看任一模块。" : "已关闭开发者模式：恢复学生端认词听音限制。"
     );
     return;
   }
@@ -1173,4 +1238,5 @@ if ("speechSynthesis" in window) {
   };
 }
 
+resetBoardState();
 render();
