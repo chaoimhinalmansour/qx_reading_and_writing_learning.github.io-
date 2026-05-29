@@ -78,14 +78,14 @@ const KNOWLEDGE_BASE = [
     chunk: "a sharp increase in",
     zh: "急剧增长",
     alternatives: ["a dramatic rise in", "a significant growth in"],
-    writingTip: "Task 1 中描述某项数据快速上升，常搭配介词 in。"
+    writingTip: "描述数据快速上升时使用，常搭配介词 in。"
   },
   {
     word: "account",
     chunk: "account for",
     zh: "占比；解释",
     alternatives: ["make up", "represent"],
-    writingTip: "Task 1 中常用来说明某项数据占多少比例。"
+    writingTip: "说明某项数据占多少比例时使用。"
   },
   {
     word: "despite",
@@ -206,8 +206,8 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "你要向同学解释：认识很多单词不等于写作能用得自然。",
-          prompt: "写 1-2 句英文，说明这个学习问题。自由选择今日词和词块，尽量让句子像 IELTS Task 2 的观点句。",
+          context: "学习小组正在讨论一个现象：有些同学能背出很多英文单词，但写句子时仍然不自然，常常知道词义却不会准确使用。",
+          prompt: "请用英文写 1-2 句，向小组说明这个问题。可以自由选择下面的今日词和词块。",
           minChunks: 2,
           sample: "Many students know many words but struggle to use them accurately because they learn vocabulary as isolated items."
         }
@@ -288,8 +288,8 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "你正在给一位 B1-B2 学生写反馈：他背了很多词，但作文里用词不准确。",
-          prompt: "写 1-2 句英文反馈。可以自由组合下面的词和词块，不需要完全照参考答案。",
+          context: "一位学生给你看了自己的学习记录：他每天背新单词，但在写英文段落时，老师仍然指出他的用词不够准确。",
+          prompt: "请用英文写 1-2 句反馈，说明他的问题和可以改进的方向。可以自由组合下面的词和词块。",
           minChunks: 2,
           sample: "A large number of students know many words, but they struggle to use them accurately."
         }
@@ -381,15 +381,15 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "你要口头总结一段图表文字：2015 到 2025 年，线上课程使用量明显上升，并改变了成人学习方式。",
-          prompt: "写 1 句英文总结这个趋势。自由选择今日词和词块，优先表达趋势和占比。",
+          context: "你正在给同学讲一段图表文字：2015 到 2025 年，线上课程使用量明显上升，更多成年人开始边工作边学习。",
+          prompt: "请用英文写 1 句，总结这段信息里最明显的趋势和结果。可以自由选择下面的今日词和词块。",
           minChunks: 2,
           sample: "The passage shows a sharp increase in online courses, which accounted for a growing share of adult education."
         }
       ]
     },
     writing: {
-      contextTitle: "写作语境：Task 1 趋势句",
+      contextTitle: "写作语境：图表趋势句",
       context:
         "任务：描述 2015 到 2025 年线上课程使用量快速增长，并说明它在成人教育中的占比。",
       retrieval: [
@@ -451,8 +451,8 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "IELTS Task 1：图表显示 2015-2025 年 online learning 快速增长，并影响 adult education。",
-          prompt: "写 1 句图表描述。自由使用下面的词和词块，句子要能直接放进小作文。",
+          context: "你正在整理一张学习方式变化图：2015 到 2025 年，online learning 的使用量快速上升；它在 adult education 中所占比例也变得更重要。",
+          prompt: "请用英文写 1 句，向读者说明这张图里最重要的变化。可以自由选择下面的今日词和词块。",
           minChunks: 2,
           sample: "There was a sharp increase in online learning from 2015 to 2025."
         }
@@ -882,13 +882,13 @@ function renderApplication(board = getBoard()) {
       const minChunks = item.minChunks || Math.min(2, bank.length);
       return `
         <div class="question-block application-block">
-          <p class="question-title">语境造句</p>
+          <p class="question-title">根据背景写句子</p>
           <div class="application-context">
-            <span>语境</span>
+            <span>背景</span>
             <p>${item.context || item.prompt}</p>
           </div>
           <p class="example-line">${item.prompt}</p>
-          <p class="example-line">建议至少调用 ${minChunks} 个今日词块。点击词块可以放入作答框，再按语境补全句子。</p>
+          <p class="example-line">建议至少调用 ${minChunks} 个今日词块。点击词块可以放入作答框，再根据背景补全句子。</p>
           <div class="word-bank" aria-label="可用词和词块">
             ${bank.map((bankItem) => `
               <button class="chunk-chip" type="button" data-insert-chunk="${bankItem.example}" data-application-target="${index}">
@@ -913,7 +913,7 @@ function renderAnswerKey() {
   $("#answer-key-content").innerHTML = `
     <p><strong>板块：</strong>${state.mode === "reading" ? "阅读练习" : "写作练习"}</p>
     <p><strong>词块检索参考：</strong>${board.retrieval.map((item) => `${item.expected} -> ${item.targetChunk}`).join(" | ")}</p>
-    <p><strong>应用方式：</strong>给语境和词块库，让学生自由造句；系统检查是否调用了足够数量的今日词块。</p>
+    <p><strong>应用方式：</strong>给背景和词块库，让学生自由表达；系统检查是否调用了足够数量的今日词块。</p>
     <p><strong>参考表达：</strong>${board.application.map((item) => item.sample).join(" | ")}</p>
   `;
 }
@@ -1243,13 +1243,13 @@ function checkApplication() {
   if (correct === board.application.length) {
     setFeedback("#feedback-application", "good", "应用完成：已经在语境里主动调用词块。");
   } else if (correct > 0) {
-    setFeedback("#feedback-application", "warn", "已有语境造句完成；继续补足另一题的词块调用。");
+    setFeedback("#feedback-application", "warn", "已有背景表达完成；继续补足另一题的词块调用。");
   } else {
     setFeedback(
       "#feedback-application",
       "bad",
       firstMiss
-        ? `目前像是在堆词块。至少调用 ${firstMiss.minChunks} 个词块，并写成完整句子。`
+        ? `目前还只是词块排列。至少调用 ${firstMiss.minChunks} 个词块，并写成完整句子。`
         : "先从词块库里选择表达，再写成完整句子。"
     );
   }
