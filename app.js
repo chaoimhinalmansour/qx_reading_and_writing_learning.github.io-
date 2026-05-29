@@ -206,10 +206,10 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "写作课后，老师展示了两份学生记录：A 同学本周背了 90 个新词，但作文里反复出现 make a homework、people is 这类不自然表达；B 同学背词少一些，却会从阅读里摘短语并改写使用。",
-          prompt: "请用英文写 1-2 句，说明 A 同学的问题可能在哪里，以及为什么只背单词不一定能改善写作。",
-          minChunks: 2,
-          sample: "Many students know many words but struggle to use them accurately because they learn vocabulary as isolated items."
+          context: "班里在讨论学习方法：有同学每天背很多单词，但写英文句子时还是常常用错；也有同学背词少一些，但会把词放进短语和句子里练。",
+          prompt: "请用英文写 1 个简单观点：你认为只背很多单词够不够。",
+          minChunks: 1,
+          sample: "A large number of words do not help if students struggle to use them accurately."
         }
       ]
     },
@@ -288,10 +288,10 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "学生 Leo 的学习记录显示：他每天背 20 个新词，词义测试能拿高分；但他的段落里常把词直接翻译进句子，老师批注说 collocation 不自然，意思也不够准确。",
-          prompt: "请用英文写 1-2 句反馈，说明 Leo 的问题和一个可执行的改进方向。",
-          minChunks: 2,
-          sample: "A large number of students know many words, but they struggle to use them accurately."
+          context: "你的学习记录显示：你认识不少新词，但写段落时经常不知道这些词应该和哪些词放在一起。",
+          prompt: "请用英文写 1 个简单观点：你现在最需要练什么。",
+          minChunks: 1,
+          sample: "I know a large number of words, but I still struggle to use them accurately."
         }
       ]
     }
@@ -381,10 +381,10 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "一份成人学习报告显示：2015 年只有 12% 的受访者使用 online courses；到 2025 年，这一比例升至 48%。报告还提到，主要原因是课程时间更灵活，许多成年人可以在全职工作之外继续学习。",
-          prompt: "请用英文写 1 句，概括这份报告中最明显的变化和它带来的结果。",
-          minChunks: 2,
-          sample: "The passage shows a sharp increase in online courses, which accounted for a growing share of adult education."
+          context: "一份学习报告显示：2015 年只有 12% 的成年人使用 online courses；到 2025 年，这个比例升到 48%。",
+          prompt: "请用英文写 1 句，描述这个明显变化。",
+          minChunks: 1,
+          sample: "There was a sharp increase in the use of online courses."
         }
       ]
     },
@@ -451,10 +451,10 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "图表对比了 adult education 的学习方式：online learning 在 2015 年只占很小一部分；到 2025 年，它已经成为更常见的选择。图表旁的注释指出，低成本和灵活时间推动了这个变化。",
-          prompt: "请用英文写 1 句，向读者说明这张图中最重要的数据变化。",
-          minChunks: 2,
-          sample: "There was a sharp increase in online learning from 2015 to 2025."
+          context: "图表显示：online learning 在 2015 年只占 adult education 的一小部分；到 2025 年，它的占比明显更高。",
+          prompt: "请用英文写 1 句，描述图表里最明显的变化。",
+          minChunks: 1,
+          sample: "Online learning accounted for a much larger share of adult education in 2025."
         }
       ]
     }
@@ -1216,7 +1216,7 @@ function checkApplication() {
     const answer = $(`[data-application-index='${index}']`).value;
     const usedChunks = getUsedChunks(answer, board);
     const minChunks = item.minChunks || Math.min(2, bank.length);
-    const longEnough = normalise(answer).split(" ").filter(Boolean).length >= 8;
+    const longEnough = normalise(answer).split(" ").filter(Boolean).length >= 6;
     const feedbackNode = $(`[data-application-feedback='${index}']`);
 
     if (feedbackNode) feedbackNode.className = "mini-feedback";
