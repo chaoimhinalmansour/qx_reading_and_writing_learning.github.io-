@@ -15,13 +15,13 @@ const MODULES = [
     id: "source",
     label: "认识单词",
     shortLabel: "认词",
-    hint: "听整句，判断词在语境里的中文义。"
+    hint: "听整句，判断词在这句话里的中文义。"
   },
   {
     id: "retrieval",
     label: "检索词块",
     shortLabel: "检索",
-    hint: "读懂文本或写作语境，再把目标短语写一遍。"
+    hint: "读懂文本或写作背景，再把目标短语写一遍。"
   },
   {
     id: "judge",
@@ -33,7 +33,7 @@ const MODULES = [
     id: "application",
     label: "应用练习",
     shortLabel: "应用",
-    hint: "在简单语境里自由调用今日词和词块。"
+    hint: "在具体背景里自由调用今日词和词块。"
   }
 ];
 
@@ -206,15 +206,15 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "学习小组正在讨论一个现象：有些同学能背出很多英文单词，但写句子时仍然不自然，常常知道词义却不会准确使用。",
-          prompt: "请用英文写 1-2 句，向小组说明这个问题。可以自由选择下面的今日词和词块。",
+          context: "写作课后，老师展示了两份学生记录：A 同学本周背了 90 个新词，但作文里反复出现 make a homework、people is 这类不自然表达；B 同学背词少一些，却会从阅读里摘短语并改写使用。",
+          prompt: "请用英文写 1-2 句，说明 A 同学的问题可能在哪里，以及为什么只背单词不一定能改善写作。",
           minChunks: 2,
           sample: "Many students know many words but struggle to use them accurately because they learn vocabulary as isolated items."
         }
       ]
     },
     writing: {
-      contextTitle: "写作语境：解释一个学习问题",
+      contextTitle: "写作背景：解释一个学习问题",
       context:
         "观点：很多学生背了许多单词，但写作中仍然用不准确。请用词块把这个观点写得更自然。",
       retrieval: [
@@ -288,8 +288,8 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "一位学生给你看了自己的学习记录：他每天背新单词，但在写英文段落时，老师仍然指出他的用词不够准确。",
-          prompt: "请用英文写 1-2 句反馈，说明他的问题和可以改进的方向。可以自由组合下面的词和词块。",
+          context: "学生 Leo 的学习记录显示：他每天背 20 个新词，词义测试能拿高分；但他的段落里常把词直接翻译进句子，老师批注说 collocation 不自然，意思也不够准确。",
+          prompt: "请用英文写 1-2 句反馈，说明 Leo 的问题和一个可执行的改进方向。",
           minChunks: 2,
           sample: "A large number of students know many words, but they struggle to use them accurately."
         }
@@ -381,15 +381,15 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "你正在给同学讲一段图表文字：2015 到 2025 年，线上课程使用量明显上升，更多成年人开始边工作边学习。",
-          prompt: "请用英文写 1 句，总结这段信息里最明显的趋势和结果。可以自由选择下面的今日词和词块。",
+          context: "一份成人学习报告显示：2015 年只有 12% 的受访者使用 online courses；到 2025 年，这一比例升至 48%。报告还提到，主要原因是课程时间更灵活，许多成年人可以在全职工作之外继续学习。",
+          prompt: "请用英文写 1 句，概括这份报告中最明显的变化和它带来的结果。",
           minChunks: 2,
           sample: "The passage shows a sharp increase in online courses, which accounted for a growing share of adult education."
         }
       ]
     },
     writing: {
-      contextTitle: "写作语境：图表趋势句",
+      contextTitle: "写作背景：图表趋势句",
       context:
         "任务：描述 2015 到 2025 年线上课程使用量快速增长，并说明它在成人教育中的占比。",
       retrieval: [
@@ -451,8 +451,8 @@ const PRACTICE_SETS = [
       application: [
         {
           type: "contextual-build",
-          context: "你正在整理一张学习方式变化图：2015 到 2025 年，online learning 的使用量快速上升；它在 adult education 中所占比例也变得更重要。",
-          prompt: "请用英文写 1 句，向读者说明这张图里最重要的变化。可以自由选择下面的今日词和词块。",
+          context: "图表对比了 adult education 的学习方式：online learning 在 2015 年只占很小一部分；到 2025 年，它已经成为更常见的选择。图表旁的注释指出，低成本和灵活时间推动了这个变化。",
+          prompt: "请用英文写 1 句，向读者说明这张图中最重要的数据变化。",
           minChunks: 2,
           sample: "There was a sharp increase in online learning from 2015 to 2025."
         }
@@ -888,7 +888,7 @@ function renderApplication(board = getBoard()) {
             <p>${item.context || item.prompt}</p>
           </div>
           <p class="example-line">${item.prompt}</p>
-          <p class="example-line">建议至少调用 ${minChunks} 个今日词块。点击词块可以放入作答框，再根据背景补全句子。</p>
+          <p class="example-line">建议至少调用 ${minChunks} 个今日词块。点击词块可以放入作答框，再根据背景补全意思。</p>
           <div class="word-bank" aria-label="可用词和词块">
             ${bank.map((bankItem) => `
               <button class="chunk-chip" type="button" data-insert-chunk="${bankItem.example}" data-application-target="${index}">
@@ -898,7 +898,7 @@ function renderApplication(board = getBoard()) {
               </button>
             `).join("")}
           </div>
-          <textarea rows="4" data-application-index="${index}" placeholder="先点选可用词块，再根据语境写完整句子。"></textarea>
+          <textarea rows="4" data-application-index="${index}" placeholder="先点选可用词块，再根据背景写完整句子。"></textarea>
           <p class="mini-feedback" data-application-feedback="${index}"></p>
         </div>
       `;
@@ -1233,7 +1233,7 @@ function checkApplication() {
         feedbackNode.classList.add(usedChunks.length > 0 ? "warn" : "bad");
         feedbackNode.textContent = usedChunks.length < minChunks
           ? `再从词块库里调用至少 ${minChunks - usedChunks.length} 个表达。`
-          : "句子还太短，补出完整语境，不只是把词块排在一起。";
+          : "句子还太短，补出完整意思，不只是把词块排在一起。";
       }
     }
   });
@@ -1241,7 +1241,7 @@ function checkApplication() {
   state.applicationPassed = correct > 0;
   markChecked("application");
   if (correct === board.application.length) {
-    setFeedback("#feedback-application", "good", "应用完成：已经在语境里主动调用词块。");
+    setFeedback("#feedback-application", "good", "应用完成：已经根据背景主动调用词块。");
   } else if (correct > 0) {
     setFeedback("#feedback-application", "warn", "已有背景表达完成；继续补足另一题的词块调用。");
   } else {
